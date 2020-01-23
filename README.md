@@ -161,3 +161,18 @@ public interface Runnable {
 ```   
 
 
+#### 3.lambda语法精讲  
+语法:  
+(parameters) -> expression  
+(parameters) -> {statements;}  
+            参数列表                    ->箭头   函数体  
+Comparator<Apple> comparator3 = (o1,o2) -> o1.getColor().compareTo(o2.getColor());
+
+()->{}  
+()->{return "Hello";}  
+()->{return "Hello World";}  
+(Integer s)-> return "Alex"+i   //invalid  
+(String s)->{return "Hello Alex"}    
+
+
+
