@@ -162,6 +162,15 @@ public interface Runnable {
 
 
 #### 3.lambda语法精讲  
+
+##### 3.1 lambda前言  
+1. 1.利用行为参数化来传递代码有助于应对不断变化的需求。它允许你定义一个代码块来表示一个行为，然后传递它  
+2. 2.可以决定在某一事件发生时（例如单击一个按钮）或在算法中的某个特定时刻（例如筛选算法中类似于“重量超过150克的苹果”的谓词，或排序中的自定义比较操作）运行该代码块
+一般来说，利用这个概念，你就可以编写更为灵活且可重复使用的代码了。
+##### 3.2 Lambda表达式  
+1. 1.Lambda表达式，它可以让你很简洁地表示一个行为或传递代码  
+2. 2.可以把Lambda表达式看作匿名功能，它基本上就是没有声明名称的方法；但和匿名类一样，它也可以作为参数传递给一个方法。  
+
 语法:  
 (parameters) -> expression  
 (parameters) -> {statements;}  
@@ -173,6 +182,186 @@ Comparator<Apple> comparator3 = (o1,o2) -> o1.getColor().compareTo(o2.getColor()
 ()->{return "Hello World";}  
 (Integer s)-> return "Alex"+i   //invalid  
 (String s)->{return "Hello Alex"}    
+
+##### 3.3 在哪里以及如何使用 Lambda
+你可以在函数式接口上使用Lambda表达式  
+
+##### 3.4 用函数式接口可以干什么呢？  
+Lambda表达式允许你直接以内联的形式为函数式接口的抽象方法提供实现，并把整个表达式作为函数式接口的实例（具体说来，是函数式接口一个具体实现
+的实例）。  
+
+### 4.Lambda使用深入解析  
+
+#### 4.1 三种等效的输出  
+
+```
+public class LambdaUsage {
+    public static void main(String[] args){
+        //lambada表达式就是:函数式接口的实例
+
+        //1.定义一个lambda表达式:
+        Runnable r1 = () -> System.out.println("Hello");
+
+        Runnable r2 = new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Hello");
+            }
+        };
+        process(r1);
+        process(r2);
+        process(()->System.out.println("Hello"));
+
+    }
+
+    public static void process(Runnable r){
+          r.run();
+    }
+}
+```  
+
+1. 1.现在，Lambda表达式可以被赋给一个变量，或传递给"一个接受函数式接口"作为参数的方法  
+
+
+#### 4.2 常见函数式接口  
+
+##### 1.Predicate  
+说明:java.util.function.Predicate<T> 接口定义了一个名叫 test 的抽象方法，它接受泛型T对象，并返回一个boolean。  
+使用场景:在你需要表示一个涉及类型 T 的布尔表达式时，就可以使用这个接口。  
+
+```  
+public class LambdaUsage {
+
+    private static List<Apple> findApples(List<Apple> list, Predicate<Apple> predicate){
+        List<Apple> result = new ArrayList<>();
+         for(Apple apple:list){
+             if(predicate.test(apple)){
+              result.add(apple);
+             }
+         }
+        return result;
+    }
+
+    private static List<Apple> findApplesByLongPredicate(List<Apple> list, LongPredicate predicate){
+        List<Apple> result = new ArrayList<>();
+         for(Apple apple:list){
+             if(predicate.test(apple.getWeight())){
+              result.add(apple);
+             }
+        }
+        return result;
+    }
+
+    private static List<Apple> findApplesByBiPredicate(List<Apple> list, BiPredicate<String,Long> biPredicate){
+        List<Apple> result = new ArrayList<>();
+        for(Apple apple:list){
+            if(biPredicate.test(apple.getColor(),apple.getWeight())){
+                result.add(apple);
+            }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args){
+        List<Apple> appleList = Arrays.asList(new Apple("green", 150), new Apple("red", 160), new Apple("green", 170));
+        List<Apple> greenList = findApples(appleList, (apple) -> apple.getColor().equals("green"));//boolean判断
+        System.out.println("Predicate:"+greenList);
+
+        List<Apple> applesByLongPredicate = findApplesByLongPredicate(appleList, (w) -> w > 160);
+        System.out.println("LongPredicate:"+applesByLongPredicate);
+
+        List<Apple> applesByBiPredicate = findApplesByBiPredicate(appleList, (s, w) -> s.equals("green") && w > 100);
+        System.out.println("BiPredicate:"+applesByBiPredicate);
+    }
+}  
+```  
+
+
+
+##### 2.Consumer  
+说明:java.util.function.Consumer<T> 定义了一个名叫 accept 的抽象方法，它接受泛型T的对象，没有返回（ void ）。   
+使用场景:你如果需要访问类型 T 的对象，并对其执行某些操作，就可以使用这个接口。比如，你可以用它来创建一个 forEach 方法，接受一个 Integers 的列表，并对其中
+每个元素执行操作。在下面的代码中，你就可以使用这个 forEach 方法，并配合Lambda来打印列表中的所有元素。  
+
+```
+public class LambdaUsage {
+    private static List<Apple> simpleConsumer(List<Apple> list, Consumer<Apple> consumer){
+        List<Apple> result = new ArrayList<>();
+        for (Apple apple:list){
+            consumer.accept(apple);
+            result.add(apple);
+        }
+       return result;
+    }
+
+    private static List<Apple> simpleBiConsumer(List<Apple> list, BiConsumer<Apple,Long> biConsumer){
+        List<Apple> result = new ArrayList<>();
+        for (Apple apple:list){
+            biConsumer.accept(apple,apple.getWeight());
+            result.add(apple);
+        }
+        return result;
+    }
+
+    public static void main(String[] args){
+        List<Apple> appleList = Arrays.asList(new Apple("green", 150), new Apple("red", 160), new Apple("green", 170));
+
+        List<Apple> consumerList = simpleConsumer(appleList, (apple) -> System.out.println(apple));
+        System.out.println("consumerList:"+consumerList);
+
+        List<Apple> simpleBiConsumer = simpleBiConsumer(appleList, (a, s) -> System.out.println(s + a.getColor() + ":Weight=>" + a.getWeight()));
+        System.out.println("simpleBiConsumer:"+simpleBiConsumer);
+    }
+}   
+```  
+
+
+##### 3.Function  
+说明:java.util.function.Function<T, R> 接口定义了一个叫作 apply 的方法，它接受一个泛型 T 的对象，并返回一个泛型 R 的对象。  
+使用场景:如果你需要定义一个Lambda，将输入对象的信息映射到输出，就可以使用这个接口（比如提取苹果的重量，或把字符串映射为它的长度）。  
+
+```
+public class LambdaUsage {
+    private static Apple testFunction(Apple apple, Function<Apple,String> function){
+        function.apply(apple);
+        return apple;
+    }
+
+    public static void main(String[] args){
+        List<Apple> appleList = Arrays.asList(new Apple("green", 150), new Apple("red", 160), new Apple("green", 170));
+
+        Apple apple = testFunction(new Apple("yellow", 200), (a) -> a.toString());
+        System.out.println("functionApple:"+apple);
+        }
+ }
+ ```  
+ 
+ 
+ ##### 4.Supplier  
+  Supplier<T> ，你可以用
+ 前面建议的新操作符将其改写为 () => T ，这进一步佐证了由于简单数据类型（primitive type）
+ 与对象类型（object type）的差异所导致的分歧  
+
+
+ ```
+ public class LambdaUsage {
+ private static Apple createApple(Supplier<Apple> supplier) {
+         return supplier.get();
+     }
+ 
+     public static void main(String[] args){
+         List<Apple> appleList = Arrays.asList(new Apple("green", 150), new Apple("red", 160), new Apple("green", 170));
+ 
+         Apple green = createApple(() -> new Apple("green", 100));
+         System.out.println("green:"+green);
+        }
+ }
+ ```
+
+
+
+
 
 
 
