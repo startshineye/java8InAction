@@ -69,11 +69,95 @@ public static List<Apple> findApples(List<Apple> appleList,AppleFilter appleFilt
     }
 ```   
 
-正是它定义了 findApples 方法的新行为。但令人遗憾的是，由于该 filterApples 方法只能接受对象，
+1. 1.正是它定义了 findApples 方法的新行为。但令人遗憾的是，由于该 filterApples 方法只能接受对象，
 所以你必须把代码包裹在 AppleFilter 对象里。你的做法就类似于在内联“传递代码”，因
 为你是通过一个实现了 filter 方法的对象来传递布尔表达式的。你将在2.3节（第3章中有更详细的
 内容）中看到，通过使用Lambda，你可以直接把表达式 "red".equals(apple.getColor())
 &&apple.getWeight() > 150 传递给 filterApples 方法，而无需定义多个 ApplePredicate
 类，从而去掉不必要的代码。
+2. 2.正如我们先前解释的那样，行为参数化的好处在于你可以把迭代要筛选的集合的逻辑与对集合中每个元素应用的行为区分开来。这样你可以重复使用同一个方法，给它不同的行为来达到不同的目的
+
+#### 2.lambda表达式初探  
+
+##### 2.1 不使用lambda的缺点
+1.不管是使用匿名内部类或者是产生子类(使用定义一个类去实现一个接口)代码都是比较累赘的  
+2.代码容易混淆  
+3.使用lambda表达式比使用匿名内部类或者产生子类更节约内存空间(可通过监控java8和java7在运行idea时候 内存分配情况)  
+
+##### 2.2 使用lambda
+函数式接口:只含有一个抽象方法的接口，为了限制接口中方法的个数，我们使用注解限制。
+
+```   
+public class FilterApple {
+
+    //3.匿名内部类调用
+    @FunctionalInterface
+    public interface AppleFilter{
+        boolean filter(Apple apple);
+    }
+
+    public static List<Apple> findApples(List<Apple> appleList, AppleFilter appleFilter){
+        List<Apple> result = new ArrayList<>();
+        for (Apple apple:appleList){
+            if(appleFilter.filter(apple)){
+                result.add(apple);
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args){
+        /**
+         * 苹果仓储
+         */
+        List<Apple> storeList = Arrays.asList(new Apple("green", 150), new Apple("red", 160), new Apple("green", 170));
+
+        List<Apple> innerApples = findApples(storeList, new AppleFilter() {
+            @Override
+            public boolean filter(Apple apple) {
+                return "green".equals(apple.getColor());
+            }
+        });
+        System.out.println("innerApples:"+innerApples);
+
+        List<Apple> apples = findApples(storeList, (Apple apple) -> {
+            return "green".equals(apple.getColor());
+        });
+
+        System.out.println("lambda:"+apples);
+    }
+}
+```   
+
+##### 2.3 之前很多接口都是函数式接口  
+
+```   
+@FunctionalInterface
+public interface Runnable {
+    void run();
+}
+```   
+
+我们以:Runnable为例:
+
+```   
+ public static void main(String[] args) throws Exception{
+        /**
+         * 苹果仓储
+         */
+        List<Apple> storeList = Arrays.asList(new Apple("green", 150), new Apple("red", 160), new Apple("green", 170));
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("本线程名称:"+Thread.currentThread().getName());
+            }
+        }).start();
+
+        new Thread(()-> System.out.println("本线程名称:"+Thread.currentThread().getName())).start();
+
+        Thread.currentThread().join();
+    }
+```   
 
 
