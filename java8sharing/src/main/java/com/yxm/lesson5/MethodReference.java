@@ -4,7 +4,9 @@ import com.yxm.Apple;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class MethodReference {
 
@@ -28,6 +30,25 @@ public class MethodReference {
         //5.循环遍历打印出appleList
         appleList.stream().forEach(System.out::println);
 
+        //类::静态方法
+        Function<String, Integer> f = Integer::parseInt;
+        Integer apply1 = f.apply("123");
+        System.out.println(apply1);
+
+        //类::实例方法
+        BiFunction<String, Integer, Character> f2 = String::charAt;
+        Character apply2 = f2.apply("Hello", 2);
+        System.out.println("f2:"+apply2);
+
+        //对象::实例
+        String str = new String("Hello");
+        Function<Integer, Character> f3 = str::charAt;
+        Character apply3 = f3.apply(2);
+        System.out.println("f3:"+apply3);
+
+        BiFunction<String, Integer, Apple> appleBiFunction = Apple::new;
+        Apple apple = appleBiFunction.apply("red", 100);
+        System.out.println("appleBiFunction:"+apple);
     }
 
 

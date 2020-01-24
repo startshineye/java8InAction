@@ -360,7 +360,10 @@ public class LambdaUsage {
  ```
 
  ##### 5.Lambda方法推导  
- 
+方法引用主要有三类。
+(1) 指向静态方法的方法引用（例如 Integer 的 parseInt 方法，写作 Integer::parseInt ）。
+(2) 指向任意类型实例方法的方法引用(例如:String的length方法，写作String::length)。  
+(3) 指向现有对象的实例方法的方法引用（假设你有一个局部变量expensiveTransaction用于存放Transaction类型的对象，它支持实例方法getValue那么你就可以写expensive-Transaction::getValue ）。
 
 ```
 public class MethodReference {
@@ -383,17 +386,27 @@ public class MethodReference {
 
         //5.循环遍历打印出appleList
         appleList.stream().forEach(System.out::println);
+
+        //类::静态方法
+        Function<String, Integer> f = Integer::parseInt;
+        Integer apply1 = f.apply("123");
+        System.out.println(apply1);
+
+        //类::实例方法
+        BiFunction<String, Integer, Character> f2 = String::charAt;
+        Character apply2 = f2.apply("Hello", 2);
+        System.out.println("f2:"+apply2);
+
+        //对象::实例
+        String str = new String("Hello");
+        Function<Integer, Character> f3 = str::charAt;
+        Character apply3 = f3.apply(2);
+        System.out.println("f3:"+apply3);
+
+        BiFunction<String, Integer, Apple> appleBiFunction = Apple::new;
+        Apple apple = appleBiFunction.apply("red", 100);
+        System.out.println("appleBiFunction:"+apple);
     }
-
-    private static <T> void useConsumer(Consumer<T> consumer,T t){
-        System.out.println("====useConsumer====start");
-        consumer.accept(t);
-        consumer.accept(t);
-        System.out.println("====useConsumer====end");
-    }
-
-}
-
 ```
 
 
