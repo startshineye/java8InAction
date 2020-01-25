@@ -409,5 +409,116 @@ public class MethodReference {
     }
 ```
 
+### 6.Java8实战视频-07Stream入门及Stream在JVM中的线程表现  
+需求:
+1.获取卡里绿小于400并且卡里绿从小到大的菜肴名称  
+
+传统方法:  
+
+```
+public static List<String> getDishNamesByCollections(List<Dish> menu){
+        List<String> result = new ArrayList<>();
+
+        List<Dish> lowerMenu = new ArrayList<>();
+        //1.获取卡里绿小于400的菜肴
+        for (Dish dish:menu){
+            if(dish.getCalories()<400){
+                lowerMenu.add(dish);
+            }
+        }
+
+        //2.排序
+        Collections.sort(lowerMenu,(d1,d2)->Integer.compare(d1.getCalories(),d2.getCalories()));
+
+        //3.获取名称
+        for(Dish dish:lowerMenu){
+            result.add(dish.getName());
+        }
+        return result;
+    }
+```
+
+stream流方法:
+
+```
+public static List<String> getDishNamesByStream(List<Dish> menu){
+        List<String>  result = new ArrayList<>();
+       return menu.stream().filter((d)->d.getCalories()<400).sorted(Comparator.comparing((d)->d.getCalories())).map(Dish::getName).collect(toList());
+}
+```
+
+因为 filter 、 sorted 、 map 和 collect 等操作是与具体线程模型无关的高层次构件，所以它们的内部实现可以是单线程的，也可能透明地充分利用你的多核架构！在实践中，这意味着你
+用不着为了让某些数据处理任务并行而去操心线程和锁了，Stream API都替你做好了！    
+
+default Stream<E> stream() {
+        return StreamSupport.stream(this.spliterator(), false);
+}
+
+spliterator就是根据cpu的核数来进行并行处理   
+
+我们怎样查看是根据并行处理，我们先看下getDishNamesByCollections，我们在getDishNamesByCollections添加线程睡眠100秒    
+
+```
+public static List<String> getDishNamesByCollections(List<Dish> menu){
+        List<String> result = new ArrayList<>();
+
+        List<Dish> lowerMenu = new ArrayList<>();
+        //1.获取卡里绿小于400的菜肴
+        for (Dish dish:menu){
+            if(dish.getCalories()<400){
+                lowerMenu.add(dish);
+            }
+        }
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //2.排序
+        Collections.sort(lowerMenu,(d1,d2)->Integer.compare(d1.getCalories(),d2.getCalories()));
+
+        //3.获取名称
+        for(Dish dish:lowerMenu){
+            result.add(dish.getName());
+        }
+        return result;
+    }
+```
+
+传统方法:然后我们借助于jdk工具查看具体线程  
+![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/1.png)  
+在控制台命令打开java的console  
+![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/2.png) 
+查看对应堆栈和线程
+![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/3.png) 
+![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/4.png)   
+
+stream流方法:借助于jdk工具查看具体线程,我们使用并行的流  
+
+```
+ public static List<String> getDishNamesByStream(List<Dish> menu){
+        List<String>  result = new ArrayList<>();
+       return menu.parallelStream().filter(
+               (d)->{
+                   try {
+                       Thread.sleep(100000);
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }
+                   return d.getCalories()<400;
+               }).sorted(Comparator.comparing((d)->d.getCalories())).map(Dish::getName).collect(toList());
+}
+```  
+
+![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/5.png)   
+
+
+
+
+
+
+
+
+
 
 
