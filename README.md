@@ -668,9 +668,99 @@ public class StreamMap {
 ```
 
 #### 11.3 查找和匹配
-  
+另一个常见的数据处理套路是看看数据集中的某些元素是否匹配一个给定的属性。StreamAPI通过 allMatch 、 anyMatch 、 noneMatch 、 findFirst 和 findAny 方法提供了这样的工具。
+##### 1.match
+
+```
+public class StreamMatch {
+    public static void main(String[] args){
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+        //1.allMatch:所有元素都大于
+        boolean allMatch = list.stream().allMatch(i -> i > 0);
+        System.out.println("allMatch:"+allMatch);//allMatch:true
+
+        //2.anyMatch:存在元素大于
+        boolean anyMatch = list.stream().anyMatch(i -> i > 9);
+        System.out.println("anyMatch:"+anyMatch);//anyMatch:false
+
+        //3.noneMatch:没有一个元素大于10
+        boolean noneMatch = list.stream().noneMatch(i -> i > 10);
+        System.out.println("noneMatch:"+noneMatch); //noneMatch:true
+    }
+}
+```
+
+##### 2.find  
+findAny 方法将返回当前流中的任意元素。它可以与其他流操作结合使用。  
+
+Optional 简介  
+Optional<T> 类（ java.util.Optional ）是一个容器类，代表一个值存在或不存在。在上面的代码中， findAny 可能什么元素都没找到。Java 8的库设计人员引入了 Optional<T> ，这
+样就不用返回众所周知容易出问题的 null 了。我们在这里不会详细讨论 Optional ，因为第10章会详细解释你的代码如何利用 Optional ，避免和 null 检查相关的bug。不过现在，了解一下
+Optional 里面几种可以迫使你显式地检查值是否存在或处理值不存在的情形的方法也不错。
+1. 1.isPresent() 将在 Optional 包含值的时候返回 true , 否则返回 false 。  
+2. 2. ifPresent(Consumer<T> block) 会在值存在的时候执行给定的代码块。我们在第3章介绍了 Consumer 函数式接口；它让你传递一个接收 T 类型参数，并返回 void 的Lambda
+表达式。  
+3. 3. T get() 会在值存在时返回值，否则抛出一个 NoSuchElement 异常。    
+4. 4. T orElse(T other) 会在值存在时返回值，否则返回一个默认值。    
 
 
+```
+public class StreamFind {
+    public static void main(String[] args){
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7);
+        Optional<Integer> optional = list.stream().filter(i -> i % 2 == 0).findAny();
+        System.out.println(optional.get());
+
+        Optional<Integer> optional1 = list.stream().filter(i -> i < 10).findAny();
+        System.out.println(optional1.orElse(-1));
+
+        Optional<Integer> optional2 = list.stream().filter(i -> i % 2 == 0).findFirst();
+        optional2.ifPresent(System.out::println);
+
+        System.out.println(optional2.filter(i -> i == 2).get());
+
+        int result = find(new Integer[]{1, 2, 3, 4, 5, 6, 7}, -1, i -> i < 10);
+        System.out.println(result);
+    }
+
+    private static int find(Integer[] values, int defaultValue, Predicate<Integer> predicate) {
+        for (int i : values) {
+            if (predicate.test(i))
+                return i;
+        }
+        return defaultValue;
+    }
+}
+```
+
+##### 3.reduce(元素求和)  
+要是还能把所有的数字相乘，而不必去复制粘贴这段代码，岂不是很好？这正是 reduce 操作的用武之地，它对这种重复应用的模式做了抽象。你可以像下面这样对流中所有的元素求和：让我们深入研究一下 reduce 操作是如何对一个数字流求和的。
+```
+public class StreamReduce {
+    public static void main(String[] args){
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7);
+
+        Integer result = list.stream().reduce(0, (i, j) -> i + j);
+        System.out.println(result); //28
+
+        list.stream().reduce((i, j) -> i + j).ifPresent(System.out::println); //28
+
+        list.stream().reduce(Integer::max).ifPresent(System.out::println); //7
+
+
+        list.stream().reduce(Integer::min).ifPresent(System.out::println); //1
+
+        list.stream().reduce((i, j) -> i > j ? j : i).ifPresent(System.out::println); //1
+
+
+        int result2 =  list.stream().filter(i -> i % 2 == 0).reduce(1, (i, j) -> i * j);
+
+        Optional.of(result2).ifPresent(System.out::println); //48
+
+    }
+}
+```
 
    
   
