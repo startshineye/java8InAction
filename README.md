@@ -587,6 +587,18 @@ at com.yxm.stream.lesson6.SimpleStream.main(SimpleStream.java:34)
 
 
 ##### 2.外部迭代与内部迭代
+
+### 9.创建流  
+1. 1.Collection.stream()  
+2. 2.Stream.of(T... var0);  
+3. 3.Arrays.stream(T[] var0)  
+4. 4.Files.lines(path)  
+5. 5.
+
+  
+
+
+
    
   
 
