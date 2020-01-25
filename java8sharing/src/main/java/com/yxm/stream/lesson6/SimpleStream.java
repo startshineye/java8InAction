@@ -3,6 +3,7 @@ package com.yxm.stream.lesson6;
 import com.yxm.stream.Dish;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -19,11 +20,20 @@ public class SimpleStream {
                 new Dish("pizza", true, 550, Dish.Type.OTHER),
                 new Dish("prawns", false, 300, Dish.Type.FISH),
                 new Dish("salmon", false, 450, Dish.Type.FISH));
-        List<String> dishNamesByCollections = getDishNamesByCollections(menu);
+        //1.集合操作
+     /*   List<String> dishNamesByCollections = getDishNamesByCollections(menu);
         System.out.println("dishNamesByCollections:"+dishNamesByCollections);
 
-    /*    List<String> dishNamesByStream = getDishNamesByStream(menu);
+        //2.流操作
+        List<String> dishNamesByStream = getDishNamesByStream(menu);
         System.out.println("dishNamesByStream:"+dishNamesByStream);*/
+
+        //3.流只能遍历一次
+        Stream<Dish> stream = menu.stream();
+        stream.forEach(System.out::println);
+        /*stream.forEach(System.out::println);*/
+
+
 
     }
 

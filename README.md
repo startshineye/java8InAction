@@ -447,6 +447,8 @@ public static List<String> getDishNamesByStream(List<Dish> menu){
 }
 ```
 
+
+
 因为 filter 、 sorted 、 map 和 collect 等操作是与具体线程模型无关的高层次构件，所以它们的内部实现可以是单线程的，也可能透明地充分利用你的多核架构！在实践中，这意味着你
 用不着为了让某些数据处理任务并行而去操心线程和锁了，Stream API都替你做好了！    
 
@@ -511,6 +513,88 @@ stream流方法:借助于jdk工具查看具体线程,我们使用并行的流
 ```  
 
 ![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/5.png)   
+
+### 8.Java8实战视频-08Stream知识点总结Stream源码阅读
+#### 8.1 流到底是什么呢？
+简短的定义就是“从支持数据处理操作的源生成的元素序列”。让我们一步步剖析这个定义。  
+1. 1.元素序列（Dish）  
+就像集合一样，流也提供了一个接口，可以访问特定元素类型的一组有序
+值。因为集合是数据结构，所以它的主要目的是以特定的时间/空间复杂度存储和访问元
+素（如 ArrayList 与 LinkedList ）。但流的目的在于表达计算，比如你前面见到的
+filter 、 sorted 和 map 。集合讲的是数据，流讲的是计算。我们会在后面几节中详细解
+释这个思想。
+2. 2.源(menu)      
+流会使用一个提供数据的源，如集合、数组或输入/输出资源。 请注意，从有序集
+合生成流时会保留原有的顺序。由列表生成的流，其元素顺序与列表一致。
+3. 3.数据处理操作(filter 、 map 、 reduce 、 find 、 match 、 sort 等)    
+流的数据处理功能支持类似于数据库的操作，以及函数式编程语言中的常用操作，如 filter 、 map 、 reduce 、 find 、 match 、 sort 等。流操作可以顺序执
+行，也可并行执行。  
+
+#### 8.2 流两个重要的特点  
+此外，流操作有两个重要的特点。
+1. 1.流水线(pipelining)    
+很多流操作本身会返回一个流，这样多个操作就可以链接起来，形成一个大的流水线。这让我们下一章中的一些优化成为可能，如延迟和短路。流水线的操作可以
+看作对数据源进行数据库式查询。
+2. 2.内部迭代(Internal iteration)  
+与使用迭代器显式迭代的集合不同，流的迭代操作是在jdk内部进行的。  
+
+ #### 8.3 stream操作简介  
+   
+ ![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/6.png)   
+ 
+ 1. 1.filter ——接受Lambda，从流中排除某些元素。在本例中，通过传递lambda d ->d.getCalories() > 300 ，选择出热量超过300卡路里的菜肴。  
+ 2. 2.map ——接受一个Lambda，将元素转换成其他形式或提取信息。在本例中，通过传递方法引用 Dish::getName ，相当于Lambda d -> d.getName() ，提取了每道菜的菜名。  
+ 3. 3.limit ——截断流，使其元素不超过给定数量。  
+ 4. 4.collect ——将流转换为其他形式。在本例中，流被转换为一个列表。它看起来有点儿像变魔术，我们在第6章中会详细解释 collect 的工作原理。现在，你可以把 collect 看作能够接受各种方案作为参数，并将流中的元素累积成为一个汇总结果的操作。这里的toList() 就是将流转换为列表的方案。  
+ 
+ #### 6.4 流与集合
+1. 1.粗略地说，集合与流之间的差异就在于什么时候进行计算。集合是一个内存中的数据结构，它包含数据结构中目前所有的值——集合中的每个元素都得先算出来才能添加到集合中。（你可
+以往集合里加东西或者删东西，但是不管什么时候，集合中的每个元素都是放在内存里的，元素都得先算出来才能成为集合的一部分。）这个思想就是用户仅仅从流中提取需要的值，而这些值——在用
+户看不见的地方——只会按需生成。这是一种生产者－消费者的关系。从另一个角度来说，流就像是一个延迟创建的集合：只有在消费者要求的时候才会计算值（用管理学的话说这就是需求驱动，甚至是实时制造)。   
+与此相反，集合则是急切创建的（供应商驱动：先把仓库装满，再开始卖，就像那些昙花一现的圣诞新玩意儿一样）。以质数为例，要是想创建一个包含所有质数的集合，那这个程序算起
+来就没完没了了，因为总有新的质数要算，然后把它加到集合里面。当然这个集合是永远也创建不完的，消费者这辈子都见不着了。
+
+2. 2.相比之下，流则是在概念上固定的数据结构（你不能添加或删除元素），其元素则是按需计算的。  
+
+3. 3.图4-3用DVD对比在线流媒体的例子展示了流和集合之间的差异。  
+另一个例子是用浏览器进行互联网搜索。假设你搜索的短语在Google或是网店里面有很多匹配项。你用不着等到所有结果和照片的集合下载完，而是得到一个流，里面有最好的10个或20
+个匹配项，还有一个按钮来查看下面10个或20个。当你作为消费者点击“下面10个”的时候，供应商就按需计算这些结果，然后再送回你的浏览器上显示。   
+
+ ![](https://raw.githubusercontent.com/startshineye/img/master/2020/01/7.png)  
+ 
+##### 1.只能遍历一次  
+
+```
+Stream<Dish> stream = menu.stream();
+stream.forEach(System.out::println);
+stream.forEach(System.out::println); 
+```
+
+打印出:
+Dish(name=pork, vegetarian=false, calories=800, type=MEAT)
+Dish(name=beef, vegetarian=false, calories=700, type=MEAT)
+Dish(name=chicken, vegetarian=false, calories=400, type=MEAT)
+Dish(name=french fries, vegetarian=true, calories=530, type=OTHER)
+Dish(name=rice, vegetarian=true, calories=350, type=OTHER)
+Dish(name=season fruit, vegetarian=true, calories=120, type=OTHER)
+Dish(name=pizza, vegetarian=true, calories=550, type=OTHER)
+Dish(name=prawns, vegetarian=false, calories=300, type=FISH)
+Dish(name=salmon, vegetarian=false, calories=450, type=FISH)
+Exception in thread "main" java.lang.IllegalStateException: stream has already been operated upon or closed
+at java.util.stream.AbstractPipeline.sourceStageSpliterator(AbstractPipeline.java:279)
+at java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:580)
+at com.yxm.stream.lesson6.SimpleStream.main(SimpleStream.java:34) 
+
+
+##### 2.外部迭代与内部迭代
+   
+  
+
+
+
+  
+  
+
 
 
 
